@@ -41,6 +41,7 @@ typedef struct
     int16_t cur_value;
     int16_t min_value;
     int16_t max_value;
+    uint8_t mirrored :1;
 } lv_lmeter_ext_t;
 
 /*Styles*/
@@ -97,6 +98,13 @@ void lv_lmeter_set_scale(lv_obj_t * lmeter, uint16_t angle, uint16_t line_cnt);
 void lv_lmeter_set_angle_offset(lv_obj_t * lmeter, uint16_t angle);
 
 /**
+ * Set the orientation of the meter growth, clockwise or counterclockwise (mirrored)
+ * @param lmeter pointer to a line meter object
+ * @param mirror mirror setting
+ */
+void lv_lmeter_set_mirror(lv_obj_t *lmeter, bool mirror);
+
+/**
  * Set the styles of a line meter
  * @param lmeter pointer to a line meter object
  * @param type which style should be set (can be only `LV_LMETER_STYLE_MAIN`)
@@ -138,7 +146,7 @@ int16_t lv_lmeter_get_max_value(const lv_obj_t * lmeter);
  * @param lmeter pointer to a line meter object
  * @return number of the scale units
  */
-uint8_t lv_lmeter_get_line_count(const lv_obj_t * lmeter);
+uint16_t lv_lmeter_get_line_count(const lv_obj_t * lmeter);
 
 /**
  * Get the scale angle of a line meter
@@ -153,6 +161,13 @@ uint16_t lv_lmeter_get_scale_angle(const lv_obj_t * lmeter);
  * @return angle offset (0..360)
  */
 uint16_t lv_lmeter_get_angle_offset(lv_obj_t * lmeter);
+
+/**
+ * get the mirror setting for the line meter
+ * @param lmeter pointer to a line meter object
+ * @return mirror (true or false)
+ */
+bool lv_lmeter_get_mirror(lv_obj_t * lmeter);
 
 /**
  * Get the style of a line meter

@@ -94,11 +94,12 @@ const uint8_t * lv_font_get_bitmap_fmt_txt(const lv_font_t * font, uint32_t unic
         if(gsize == 0) return NULL;
 
         uint32_t buf_size = gsize;
+        /*Compute memory size needed to hold decompressed glyph, rounding up*/
         switch(fdsc->bpp) {
-        case 1: buf_size = gsize >> 3;  break;
-        case 2: buf_size = gsize >> 2;  break;
-        case 3: buf_size = gsize >> 1;  break;
-        case 4: buf_size = gsize >> 1;  break;
+        case 1: buf_size = (gsize + 7) >> 3;  break;
+        case 2: buf_size = (gsize + 3) >> 2;  break;
+        case 3: buf_size = (gsize + 1) >> 1;  break;
+        case 4: buf_size = (gsize + 1) >> 1;  break;
         }
 
         if(lv_mem_get_size(buf) < buf_size) {
@@ -186,7 +187,7 @@ static uint32_t get_glyph_dsc_id(const lv_font_t * font, uint32_t letter)
             uint8_t * p = lv_utils_bsearch(&rcp, fdsc->cmaps[i].unicode_list, fdsc->cmaps[i].list_length, sizeof(fdsc->cmaps[i].unicode_list[0]), unicode_list_compare);
 
             if(p) {
-                lv_uintptr_t ofs = (lv_uintptr_t)p - (lv_uintptr_t) fdsc->cmaps[i].unicode_list;
+                lv_uintptr_t ofs = (lv_uintptr_t)(p - (uint8_t *) fdsc->cmaps[i].unicode_list);
                 ofs = ofs >> 1;     /*The list stores `uint16_t` so the get the index divide by 2*/
                 glyph_id = fdsc->cmaps[i].glyph_id_start + ofs;
             }
@@ -195,7 +196,7 @@ static uint32_t get_glyph_dsc_id(const lv_font_t * font, uint32_t letter)
             uint8_t * p = lv_utils_bsearch(&rcp, fdsc->cmaps[i].unicode_list, fdsc->cmaps[i].list_length, sizeof(fdsc->cmaps[i].unicode_list[0]), unicode_list_compare);
 
             if(p) {
-                lv_uintptr_t ofs = (lv_uintptr_t)p - (lv_uintptr_t) fdsc->cmaps[i].unicode_list;
+                lv_uintptr_t ofs = (lv_uintptr_t)(p - (uint8_t*) fdsc->cmaps[i].unicode_list);
                 ofs = ofs >> 1;     /*The list stores `uint16_t` so the get the index divide by 2*/
                 const uint8_t * gid_ofs_16 = fdsc->cmaps[i].glyph_id_ofs_list;
                 glyph_id = fdsc->cmaps[i].glyph_id_start + gid_ofs_16[ofs];
@@ -232,7 +233,7 @@ static int8_t get_kern_value(const lv_font_t * font, uint32_t gid_left, uint32_t
 
             /*If the `g_id_both` were found get its index from the pointer*/
             if(kid_p) {
-                lv_uintptr_t ofs = (lv_uintptr_t)kid_p - (lv_uintptr_t)g_ids;
+                lv_uintptr_t ofs = (lv_uintptr_t)(kid_p - g_ids);
                 ofs = ofs >> 1;     /*ofs is for pair, divide by 2 to refer as a single value*/
                 value = kdsc->values[ofs];
             }
@@ -245,7 +246,7 @@ static int8_t get_kern_value(const lv_font_t * font, uint32_t gid_left, uint32_t
 
             /*If the `g_id_both` were found get its index from the pointer*/
             if(kid_p) {
-                lv_uintptr_t ofs = (lv_uintptr_t)kid_p - (lv_uintptr_t)g_ids;
+                lv_uintptr_t ofs = (lv_uintptr_t) (kid_p - (const uint8_t *)g_ids);
                 ofs = ofs >> 4;     /*ofs is 4 byte pairs, divide by 4 to refer as a single value*/
                 value = kdsc->values[ofs];
             }
@@ -257,7 +258,7 @@ static int8_t get_kern_value(const lv_font_t * font, uint32_t gid_left, uint32_t
         /*Kern classes*/
         const lv_font_fmt_txt_kern_classes_t * kdsc = fdsc->kern_dsc;
         uint8_t left_class = kdsc->left_class_mapping[gid_left];
-        uint8_t right_class = kdsc->left_class_mapping[gid_right];
+        uint8_t right_class = kdsc->right_class_mapping[gid_right];
 
         /* If class = 0, kerning not exist for that glyph
          * else got the value form `class_pair_values` 2D array*/
@@ -475,5 +476,5 @@ static uint8_t rle_next(void)
  */
 static int32_t unicode_list_compare(const void * ref, const void * element)
 {
-    return (*(uint16_t *)ref) - (*(uint16_t *)element);
+    return ((int32_t)(*(uint16_t *)ref)) - ((int32_t)(*(uint16_t *)element));
 }
